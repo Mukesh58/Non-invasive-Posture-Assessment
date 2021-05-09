@@ -5,6 +5,7 @@ from sys import platform
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from mpl_toolkits import mplot3d
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -16,6 +17,7 @@ params["model_folder"] = "../../models/"
 try:
     # Import Openpose (Windows/Ubuntu/OSX)
     dir_path = os.path.dirname(os.path.realpath(__file__))
+    print(dir_path)
     try:
         # Windows Import
         if platform == "win32":
@@ -86,89 +88,107 @@ def main():
         # ax = fig.add_subplot(111, projection='3d')
 
         fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-        datasets = []
+        neckLine = []
         eye_L = []
         eye_R = []
 
+        count = 0
+
         while True:
+
+                count +=1
 
                 ret,img = stream.read()
 
                 #cv2.imshow('Human Pose Estimation',img)
 
                 # Output keypoints and the image with the human skeleton blended on it
-                # keypoints, output_image = opWrapper.forwardPass(img, True)
-                #time.sleep(0.5)
 
                 datum = op.Datum()
-                # imageToProcess = cv2.imread(img)
                 datum.cvInputData = img
                 opWrapper.emplaceAndPop([datum])
 
-                #print("Body keypoints: \n" + str(datum.poseKeypoints))
-                # print("Time: " + str(time.time() - t_start))
-                # print(str(datum.poseKeypoints[0][0]) + "\n" + str(datum.poseKeypoints[0][1]))
+                # x.append(datum.poseKeypoints[0][0][0])
+                # y.append(datum.poseKeypoints[0][0][1])
+                # z.append(datum.poseKeypoints[0][0][2])
+                #
+                # x1.append(datum.poseKeypoints[0][1][0])
+                # y1.append(datum.poseKeypoints[0][1][1])
+                # z1.append(datum.poseKeypoints[0][1][2])
 
-                x.append(datum.poseKeypoints[0][0][0])
-                y.append(datum.poseKeypoints[0][0][1])
-                z.append(datum.poseKeypoints[0][0][2])
-
-                x1.append(datum.poseKeypoints[0][1][0])
-                y1.append(datum.poseKeypoints[0][1][1])
-                z1.append(datum.poseKeypoints[0][1][2])
-
-                datasets.append([[datum.poseKeypoints[0][0][0],datum.poseKeypoints[0][1][0]], [datum.poseKeypoints[0][0][1],datum.poseKeypoints[0][1][1]], [datum.poseKeypoints[0][0][2],datum.poseKeypoints[0][1][2]]])
+                neckLine.append([[datum.poseKeypoints[0][0][0],datum.poseKeypoints[0][1][0]], [datum.poseKeypoints[0][0][1], datum.poseKeypoints[0][1][1]], [datum.poseKeypoints[0][0][2], datum.poseKeypoints[0][1][2]]])
                 eye_L.append([[datum.poseKeypoints[0][16][0]], [datum.poseKeypoints[0][16][1]], [datum.poseKeypoints[0][16][2]]])
                 eye_R.append([[datum.poseKeypoints[0][15][0]], [datum.poseKeypoints[0][15][1]], [datum.poseKeypoints[0][15][2]]])
-
-                # Display the stream
-                # cv2.putText(img,'OpenPose using Python-OpenCV',(20,30), font, 1,(255,255,255),1,cv2.LINE_AA)
 
                 cv2.imshow("OpenPose", datum.cvOutputData)
 
                 key = cv2.waitKey(1)
 
-                if key==ord('q'):
+                if key==ord('q') or count == 100: ######################################## COUNTER SET TO 20 FRAMES
                     break
 
         stream.release()
         #cv2.destroyAllWindows()
 
-        for i in range(len(datasets)):
+        neckLine = np.array(neckLine) # Convert array to NumPy array
+
+        data = {'nose_x': neckLine[:,0,0],'neck_x': neckLine[:,0,1],'nose_y': neckLine[:,1,0],'neck_y': neckLine[:,1,1],'nose_z': neckLine[:,2,0],'neck_z': neckLine[:,2,1]}
+
+        df = pd.DataFrame(data)
+        df.head()
+
+        df_sma = pd.DataFrame(data)
+        df_sma.head()
+
+        print(df_sma)
+
+        # Moving average with specified window size
+        window_size = 5
+        for j in range(0, df.shape[1]):
+            for i in range(0, df.shape[0] - window_size+1):
+                df_sma.loc[df_sma.index[i + window_size-1], str(df_sma.columns.values[j])] = np.round(((df.iloc[i, j] + df.iloc[i + 1, j] + df.iloc[i + 2, j] + df.iloc[i + 3, j] + df.iloc[i + 4, j]) / window_size), 1)
+
+        df_sma.head()
+
+        # for j in range(0, df.shape[1]):
+        #     for i in range(0, df.shape[0] - window_size+1):
+        #         df1.loc[df.index[i + window_size-1], str(df1.columns.values[j])] = np.round(((df1.iloc[i, j] + df1.iloc[i + 1, j] + df1.iloc[i + 2, j] + df1.iloc[i + 3, j] + df1.iloc[i + 4, j]) / window_size), 1)
+        #         # print(df['nose_x'])
+
+
+        print(df)
+        print("\n\n\n")
+        print(df_sma)
+
+
+        # plt.figure(figsize=[15, 10])
+        # plt.grid(True)
+        # plt.plot(df['nose_x'], label='Nose')
+        # plt.plot(df_sma['nose_x'], label='SMA-Nose: Smoothing Raw Values')
+
+
+        for i in range(0,len(neckLine),5):
             if i == 0:
-                ax.plot(datasets[i][0], datasets[i][1], datasets[i][2], color="r", label="Neck to Nose Line")
+                ax.plot([df_sma['nose_x'][i], df_sma['neck_x'][i]], [df_sma['nose_y'][i], df_sma['neck_y'][i]], [df_sma['nose_z'][i], df_sma['neck_z'][i]], color="r", label="Neck to Nose Line")
+                # ax.plot(df[i][0], df[i][1], df[i][2], color="r", label="Neck to Nose Line")
                 ax.scatter(eye_L[i][0], eye_L[i][1], eye_L[i][2], color="green", label="Left Eye")
                 ax.scatter(eye_R[i][0], eye_R[i][1], eye_R[i][2], color="blue", label="Right Eye")
             else:
-                ax.plot(datasets[i][0], datasets[i][1], datasets[i][2], color="r")
+                ax.plot([df_sma['nose_x'][i], df_sma['neck_x'][i]], [df_sma['nose_y'][i], df_sma['neck_y'][i]],
+                        [df_sma['nose_z'][i], df_sma['neck_z'][i]], color="r")
+                # ax.plot(neckLine[i][0], neckLine[i][1], neckLine[i][2], color="r")
                 ax.scatter(eye_L[i][0], eye_L[i][1], eye_L[i][2], color="green")
                 ax.scatter(eye_R[i][0], eye_R[i][1], eye_R[i][2], color="blue")
-
-        #ax.scatter(x, y, z, c='r', marker='o')
-        #ax.scatter(x1, y1, z1, c='b', marker='o')
 
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
 
-        plt.legend()
 
+        plt.legend()
         plt.show()
 
 
-        # Plotting data points
-        # ax.plot(dataset["x"], dataset["y"], dataset["z"], color="r", label="Neck to Nose Line")
-        # ax.scatter(eye_L[i][0], eye_L[i][1], eye_L[i][2], color="green", label="Left Eye")
-        # ax.scatter(eye_R[i][0], eye_R[i][1], eye_R[i][2], color="blue", label="Right Eye")
-
-        # Appending data points in loop
-        # datasets.append({"x": [datum.poseKeypoints[0][0][0], datum.poseKeypoints[0][1][0]],
-        #                  "y": [datum.poseKeypoints[0][0][1], datum.poseKeypoints[0][1][1]],
-        #                  "z": [datum.poseKeypoints[0][0][2], datum.poseKeypoints[0][1][2]]})
-        # eye_L.append(
-        #     [[datum.poseKeypoints[0][16][0]], [datum.poseKeypoints[0][16][1]], [datum.poseKeypoints[0][16][2]]])
-        # eye_R.append(
-        #     [[datum.poseKeypoints[0][15][0]], [datum.poseKeypoints[0][15][1]], [datum.poseKeypoints[0][15][2]]])
 
 
 if __name__ == '__main__':
