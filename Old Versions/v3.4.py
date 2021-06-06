@@ -105,9 +105,6 @@ def main():
 
         font = cv2.FONT_HERSHEY_SIMPLEX
 
-
-
-
         # Initialising Variables
         calibCounter = 0  # Counter allowing for calibration sequence counting
         currentPosture = 0  # Setting initial default posture as "Healthy"
@@ -127,11 +124,10 @@ def main():
         write_flag = True  # Write video file when run
 
 
-
         # Set parameter values
         frameNum = 0 # Counter that monitors the labels the image frame captured via OpenCV
         frameInterval = 5 # (1 out of n): Frequency of frames that will be captured and used for processing
-        alert_PostureThreshold = 30 * (12/frameInterval) # Number of seconds allowed in awkward posture before posture alert is triggered
+        alert_PostureThreshold = 10 * (12/frameInterval) # Number of seconds allowed in awkward posture before posture alert is triggered
         break_interval = 20 # Number of minutes until a periodic break reminder is issued
         calib_framesRequired = 20 # Number of frames in confidence threshold to achieve satisfactory calibration
         time_before_start = 1 # Delay in seconds before the video capture begins once script is first launched
