@@ -11,5 +11,6 @@ OpenPose installation settings can be found here:
 
 The system also used the following libraries:
 - NumPy
+- Pandas
 - Tkinter
 - Winsound
