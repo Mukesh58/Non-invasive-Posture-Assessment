@@ -1,13 +1,15 @@
-Welcome to the Non-Invasive Posture Assessment System (NIPA).
+## Welcome to the Non-Invasive Posture Assessment System (NIPA).
 
-This project was developed for a Final Year Project for Monash University - Electrical and Computer System Engineering.
+This system was developed as a Final Year Project at Monash University - Electrical and Computer System Engineering.
 
-The system requires the following dependencies:
-- OpenPose: https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation/1_prerequisites.md
-- Python 3.8: (https://www.python.org/downloads/release/python-380/)
-
-The libraries used include:
+The following dependencies are required:
+- [Python 3.8](https://www.python.org/downloads/release/python-380/)
+- [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation/1_prerequisites.md)
 - OpenCV
-- OpenPose
+
+OpenPose installation settings can be found here: 
+
+The system also used the following libraries:
 - NumPy
 - Tkinter
+- Winsound
