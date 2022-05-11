@@ -7,7 +7,7 @@ The following dependencies are required:
 - [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose)
 - [OpenCV](https://opencv.org/)
 
-OpenPose installation settings can be found here: [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation/1_prerequisites.md)
+OpenPose installation settings can be found here: [OpenPose Setup](https://github.com/CMU-Perceptual-Computing-Lab/openpose/blob/master/doc/installation/1_prerequisites.md)
 
 The system also used the following libraries:
 - NumPy
